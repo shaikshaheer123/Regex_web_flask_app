@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Regex Matcher</title>
+    <style>
+        .matched {
+            background-color: rgb(8, 155, 205);
+        }
+        .unmatched {
+            background-color: rgb(245, 247, 248);
+        }
+        .input-box {
+            width: 50%;
+            height: 50px; /* Adjust height as needed */
+        }
+    </style>
+</head>
+<body>
+    <h1>Regex Matcher</h1>
+    
+    <form id="regex_form" method="post" onsubmit="return highlightMatches()">
+        <label for="test_string">TEST STRING:</label><br>
+        <textarea id="test_string" name="test_string" class="input-box" placeholder="Insert your test string here"></textarea><br>
+        
+        <label for="regex_pattern">REGULAR EXPRESSION:</label><br>
+        <textarea id="regex_pattern" name="regex_pattern" class="input-box" placeholder="Insert your regular expression here"></textarea><br><br>
+        
+        <input type="submit" value="Match">
+    </form>
+    
+    <div id="matched_output" class="input-box"></div>
+    <div id="matched_count"></div> <!-- New div for displaying matched characters count -->
+
+    <h2>Email Validation</h2>
+    <form id="email_form" onsubmit="return validateEmail()">
+        <label for="email">Email Address:</label><br>
+        <input type="email" id="email" name="email" class="input-box" placeholder="Enter email address"><br><br>
+        <input type="button" value="Validate Email" onclick="validateEmail()">
+    </form>
+
+    <div id="email_validation_result"></div> <!-- New div for displaying email validation result -->
+
+    <script>
+        function highlightMatches() {
+            var testString = document.getElementById("test_string").value;
+            var regexPattern = document.getElementById("regex_pattern").value;
+            var regex = new RegExp(regexPattern, "g");
+            var match;
+            var matchedCount = 0;
+            var unmatchedCount = 0;
+            var highlightedString = "";
+            var lastIndex = 0;
+            while ((match = regex.exec(testString)) !== null) {
+                if (match.index > lastIndex) {
+                    unmatchedCount += match.index - lastIndex;
+                    highlightedString += "<span class='unmatched'>" + testString.substring(lastIndex, match.index) + "</span>";
+                }
+                matchedCount += match[0].length;
+                highlightedString += "<span class='matched'>" + match[0] + "</span>";
+                lastIndex = regex.lastIndex;
+            }
+            if (lastIndex < testString.length) {
+                unmatchedCount += testString.length - lastIndex;
+                highlightedString += "<span class='unmatched'>" + testString.substring(lastIndex) + "</span>";
+            }
+            document.getElementById("matched_output").innerHTML = highlightedString;
+            // Display matched characters count below the page
+            var matchInfo = "Matching characters: " + matchedCount + ", Non-matching characters: " + unmatchedCount;
+            document.getElementById("matched_count").innerHTML = matchInfo;
+            
+            return false; // Prevent form submission
+        }
+
+        function validateEmail() {
+            var email = document.getElementById("email").value;
+            var xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function() {
+                if (this.readyState == 4 && this.status == 200) {
+                    var response = JSON.parse(this.responseText);
+                    var validation_result = response.valid ? "Valid" : "Invalid";
+                    document.getElementById("email_validation_result").innerText = "Email is " + validation_result;
+                }
+            };
+            xhttp.open("POST", "/", true);
+            xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+            xhttp.send("email=" + email);
+        }
+    </script>
+</body>
+</html>
